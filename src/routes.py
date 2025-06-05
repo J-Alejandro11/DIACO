@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, make_response
 from src.controllers.queja_controller import DepartamentoController
 from src.database.conexionbd import db
 import os
@@ -8,6 +8,8 @@ from src.controllers.quejas_total_controller import QuejasTotalController
 from sqlalchemy import func, distinct
 from src.controllers.revision_quejas_controller import QuejasDetalladasController
 from src.controllers.lista_comercios_controller import ComerciosUbicacionesController
+from src.controllers.reporte_quejas_controller import ReporteQuejasController
+from fpdf import FPDF
 
 bp = Blueprint('main', __name__)
 
@@ -18,6 +20,7 @@ usuario_controller = UsuarioController()
 quejas_total_controller = QuejasTotalController()
 revision_quejas_controller = QuejasDetalladasController()
 lista_comercios_controller = ComerciosUbicacionesController()
+reporte_quejas_controller = ReporteQuejasController()
 
 @bp.route('/')
 def index():
@@ -130,3 +133,40 @@ def api_lista_comercios():
     data = lista_comercios_controller.obtener_lista_comercios()
     return jsonify(data)
 
+@bp.route('/api/reportes/quejas/pdf')
+def api_reporte_quejas_pdf():
+    data = reporte_quejas_controller.obtener_reporte_quejas()
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=10)
+    pdf.cell(0, 10, "Reporte de Quejas", ln=True, align='C')
+    pdf.ln(5)
+    # Encabezados
+    headers = ["Comercio", "Departamento", "Municipio", "Categoria", "Descripcion", "Fecha", "Total Quejas Ubicación"]
+    for header in headers:
+        pdf.cell(30, 8, header, border=1)
+    pdf.ln()
+    # Filas
+    for row in data:
+        pdf.cell(30, 8, str(row['comercio'])[:15], border=1)
+        pdf.cell(30, 8, str(row['departamento'])[:15], border=1)
+        pdf.cell(30, 8, str(row['municipio'])[:15], border=1)
+        pdf.cell(30, 8, str(row['categoria'])[:15], border=1)
+        pdf.cell(30, 8, str(row['descripcion_queja'])[:15], border=1)
+        fecha = row['fecha_registro']
+        if fecha:
+            fecha = fecha.strftime('%Y-%m-%d %H:%M')
+        else:
+            fecha = ''
+        pdf.cell(30, 8, fecha, border=1)
+        pdf.cell(30, 8, str(row['total_quejas_por_ubicacion']), border=1)
+        pdf.ln()
+    response = make_response(pdf.output(dest='S').encode('latin1'))
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=reporte_quejas.pdf'
+    return response
+
+@bp.route('/api/reportes/quejas')
+def api_reporte_quejas():
+    data = reporte_quejas_controller.obtener_reporte_quejas()
+    return jsonify(data)

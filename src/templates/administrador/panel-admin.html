@@ -174,7 +174,7 @@
                                 </div>
                                 <div class="stat-info">
                                     <h3>Quejas Resueltas</h3>
-                                    <p>892 (71%)</p>
+                                    <p>2 (71%)</p>
                                 </div>
                             </div>
                             <div class="stat-card">
@@ -183,7 +183,7 @@
                                 </div>
                                 <div class="stat-info">
                                     <h3>Quejas Pendientes</h3>
-                                    <p>356 (29%)</p>
+                                    <p>1 (29%)</p>
                                 </div>
                             </div>
                         </div>
@@ -202,7 +202,7 @@
                                     </select>
                                 </div>
                                 <div class="chart-container">
-                                    <img src="../static/img/chart-comercios.png" alt="Gráfica de quejas por comercio" class="chart-placeholder">
+                                   
                                 </div>
                             </div>
                             <div class="chart-card">
@@ -214,7 +214,7 @@
                                     </select>
                                 </div>
                                 <div class="chart-container">
-                                    <img src="../static/img/chart-regiones.png" alt="Gráfica de quejas por región" class="chart-placeholder">
+                                    
                                 </div>
                             </div>
                         </div>
@@ -225,7 +225,7 @@
                                     <h3><i class="fas fa-tags"></i> Quejas por Categoría</h3>
                                 </div>
                                 <div class="chart-container">
-                                    <img src="../static/img/chart-categorias.png" alt="Gráfica de quejas por categoría" class="chart-placeholder">
+                                   
                                 </div>
                             </div>
                             <div class="chart-card">
@@ -233,7 +233,7 @@
                                     <h3><i class="fas fa-sort-amount-up"></i> Quejas por Rangos</h3>
                                 </div>
                                 <div class="chart-container">
-                                    <img src="../static/img/chart-rangos.png" alt="Gráfica de quejas por rango" class="chart-placeholder">
+                    
                                 </div>
                             </div>
                         </div>
@@ -370,9 +370,28 @@
 
                 <!-- Generar Reportes -->
                 <section id="reportes-section" class="admin-section" style="display:none;">
-                    <h2><i class="fas fa-file-pdf"></i> Generar Reportes</h2>
-                    <!-- Aquí puedes poner opciones para descargar reportes, filtros, etc. -->
-                    <p>Aquí podrás generar y descargar reportes en PDF.</p>
+                    <h2><i class="fas fa-file-pdf"></i> Reporte de Quejas</h2>
+                    <button id="btn-descargar-pdf" class="btn filter-btn" style="margin-bottom: 15px;">
+                        <i class="fas fa-file-pdf"></i> Descargar PDF
+                    </button>
+                    <div class="quejas-table">
+                        <table id="tabla-reporte-quejas">
+                            <thead>
+                                <tr>
+                                    <th>Comercio</th>
+                                    <th>Departamento</th>
+                                    <th>Municipio</th>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha Registro</th>
+                                    <th>Total Quejas Ubicación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Las filas se llenarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             </div>
         </main>
@@ -528,6 +547,47 @@
 
             // Si quieres cargar la tabla al cargar la página, descomenta la siguiente línea:
             // cargarQuejas();
+
+            function cargarReporteQuejas() {
+                fetch('/api/reportes/quejas')
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.querySelector('#tabla-reporte-quejas tbody');
+                        tbody.innerHTML = '';
+                        if (data.length === 0) {
+                            const fila = document.createElement('tr');
+                            fila.innerHTML = '<td colspan="7">No hay datos para el reporte.</td>';
+                            tbody.appendChild(fila);
+                        } else {
+                            data.forEach(row => {
+                                const fila = document.createElement('tr');
+                                fila.innerHTML = `
+                                    <td>${row.comercio}</td>
+                                    <td>${row.departamento}</td>
+                                    <td>${row.municipio}</td>
+                                    <td>${row.categoria}</td>
+                                    <td>${row.descripcion_queja}</td>
+                                    <td>${new Date(row.fecha_registro).toLocaleString('es-ES')}</td>
+                                    <td>${row.total_quejas_por_ubicacion}</td>
+                                `;
+                                tbody.appendChild(fila);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        const tbody = document.querySelector('#tabla-reporte-quejas tbody');
+                        tbody.innerHTML = '<tr><td colspan="7">Error al cargar el reporte.</td></tr>';
+                        console.error('Error al cargar reporte:', error);
+                    });
+            }
+
+            // Cargar reporte al mostrar la sección de reportes
+            document.querySelector('a[href="#reportes"]').addEventListener('click', cargarReporteQuejas);
+
+            // Descargar PDF
+            document.getElementById('btn-descargar-pdf').addEventListener('click', function() {
+                window.open('/api/reportes/quejas/pdf', '_blank');
+            });
         });
     </script>
 </body>
