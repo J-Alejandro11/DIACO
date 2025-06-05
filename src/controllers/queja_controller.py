@@ -27,4 +27,16 @@ class DepartamentoController:
         """
         Inserta un nuevo comercio en la base de datos.
         """
-        return self.manager.insertar_comercio(nombre) 
+        return self.manager.insertar_comercio(nombre)
+
+    def insertar_queja_completa(self, nombre_comercio, nombre_departamento, nombre_municipio, nombre_categoria, descripcion_queja):
+        """
+        Inserta una queja completa y retorna los IDs de los campos relacionados.
+        """
+        return self.manager.insertar_queja_completa(
+            nombre_comercio,
+            nombre_departamento,
+            nombre_municipio,
+            nombre_categoria,
+            descripcion_queja
+        ) 

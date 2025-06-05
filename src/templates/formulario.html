@@ -244,31 +244,54 @@
             
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const nombreComercio = comercioInput.value.trim();
-                if (!nombreComercio) {
-                    alert('Por favor, ingresa el nombre del comercio.');
+
+                // Validación básica
+                if (!terminos.checked) {
+                    alert('Debes aceptar los términos para enviar la queja.');
                     return;
                 }
 
-                // Primero, insertar el comercio en la base de datos
-                fetch('/api/comercios', {
+                const nombreComercio = comercioInput.value.trim();
+                const nombreDepartamento = departamentoSelect.value;
+                const nombreMunicipio = municipioSelect.value;
+                const nombreCategoria = categoriaSelect.value;
+                const descripcionQueja = descripcion.value.trim();
+
+                if (!nombreComercio || !nombreDepartamento || !nombreMunicipio || !nombreCategoria || !descripcionQueja) {
+                    alert('Por favor, completa todos los campos obligatorios.');
+                    return;
+                }
+
+                // Enviar la queja completa al backend
+                fetch('/api/quejas', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ nombre: nombreComercio })
+                    body: JSON.stringify({
+                        nombre_comercio: nombreComercio,
+                        nombre_departamento: nombreDepartamento,
+                        nombre_municipio: nombreMunicipio,
+                        nombre_categoria: nombreCategoria,
+                        descripcion_queja: descripcionQueja
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Aquí puedes continuar con el resto del procesamiento del formulario,
-                        // por ejemplo, enviar el resto de los datos o mostrar un mensaje de éxito.
-                        alert('Comercio registrado correctamente: ' + data.nombre);
-                        // Si quieres, puedes enviar el formulario completo aquí o limpiar el campo:
-                        // form.reset();
+                        alert(
+                            '✅ Queja enviada exitosamente.\n\n' +
+                            'ID Queja: ' + data.id_queja + '\n' +
+                            'ID Comercio: ' + data.id_comercio + '\n' +
+                            'ID Ubicación: ' + data.id_ubicacion + '\n' +
+                            'ID Categoría: ' + data.id_categoria
+                        );
+                        form.reset();
+                        charCount.textContent = '0';
+                        municipioSelect.innerHTML = '<option value=\"\">Primero selecciona un departamento</option>';
+                        municipioSelect.disabled = true;
                     } else {
-                        alert('Error al registrar el comercio: ' + data.error);
+                        alert('Error al enviar la queja: ' + data.error);
                     }
                 })
                 .catch(error => {

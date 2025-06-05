@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadísticas de Quejas</title>
+    <link rel="stylesheet" href="../static/css/estadisticas.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    
+    <div class="hero-bg">
+        <header>
+            <div class="container">
+                <div class="logo">
+                    <h1>Estadísticas de Quejas</h1>
+                </div>
+                <nav class="menu">
+                    <ul>
+                        <li><a href="{{ url_for('main.index') }}" class="menu-btn"><i class="fas fa-arrow-left"></i> Volver al inicio</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+    </div>
+    
+    <section class="graficos">
+        <div class="grafico-container">
+            <h2>Quejas por Categoría</h2>
+            <canvas id="categoriaChart"></canvas>
+        </div>
+
+        <div class="grafico-container">
+            <h2>Quejas por Departamento</h2>
+            <canvas id="departamentoChart"></canvas>
+        </div>
+
+        <div class="grafico-container">
+            <h2>Quejas por Comercio</h2>
+            <canvas id="comercioChart"></canvas>
+        </div>
+    </section>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quejas por Categoría
+        fetch('/api/estadisticas/categorias')
+            .then(response => response.json())
+            .then(data => {
+                const categorias = data.map(item => item.categoria);
+                const categoriasData = data.map(item => item.total);
+
+                new Chart(document.getElementById("categoriaChart"), {
+                    type: 'bar',
+                    data: {
+                        labels: categorias,
+                        datasets: [{
+                            label: 'Cantidad de Quejas',
+                            data: categoriasData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            });
+
+        // Quejas por Departamento
+        fetch('/api/estadisticas/departamentos')
+            .then(response => response.json())
+            .then(data => {
+                const departamentos = data.map(item => item.departamento);
+                const departamentosData = data.map(item => item.total);
+
+                new Chart(document.getElementById("departamentoChart"), {
+                    type: 'pie',
+                    data: {
+                        labels: departamentos,
+                        datasets: [{
+                            label: 'Quejas',
+                            data: departamentosData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            });
+
+        // Quejas por Comercio
+        fetch('/api/estadisticas/comercios')
+            .then(response => response.json())
+            .then(data => {
+                const comercios = data.map(item => item.comercio);
+                const comerciosData = data.map(item => item.total_quejas);
+
+                new Chart(document.getElementById("comercioChart"), {
+                    type: 'bar',
+                    data: {
+                        labels: comercios,
+                        datasets: [{
+                            label: 'Quejas',
+                            data: comerciosData,
+                            backgroundColor: 'rgba(153, 102, 255, 0.7)'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            });
+    });
+    </script>
+</body>
+</html>
