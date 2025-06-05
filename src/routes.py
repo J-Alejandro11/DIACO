@@ -3,12 +3,21 @@ from src.controllers.queja_controller import DepartamentoController
 from src.database.conexionbd import db
 import os
 from src.controllers.estadisticas_controller import EstadisticasController
+from src.controllers.usuario_controller import UsuarioController
+from src.controllers.quejas_total_controller import QuejasTotalController
+from sqlalchemy import func, distinct
+from src.controllers.revision_quejas_controller import QuejasDetalladasController
+from src.controllers.lista_comercios_controller import ComerciosUbicacionesController
 
 bp = Blueprint('main', __name__)
 
 # Inicializar el controlador
 queja_controller = DepartamentoController()
 estadisticas_controller = EstadisticasController()
+usuario_controller = UsuarioController()
+quejas_total_controller = QuejasTotalController()
+revision_quejas_controller = QuejasDetalladasController()
+lista_comercios_controller = ComerciosUbicacionesController()
 
 @bp.route('/')
 def index():
@@ -79,3 +88,45 @@ def api_estadisticas_comercios():
 @bp.route('/api/estadisticas/departamentos')
 def api_estadisticas_departamentos():
     return jsonify(estadisticas_controller.quejas_por_departamento())
+
+@bp.route('/loginAdministrador')
+def loginAdministrador():
+    return render_template('administrador/login.html')
+
+@bp.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    usuario = data.get('usuario')
+    contrasena = data.get('contrasena')
+    print('Usuario recibido:', usuario)
+    print('Contraseña recibida:', contrasena)
+    user = usuario_controller.autenticar(usuario, contrasena)
+    if user:
+        return jsonify({'success': True, 'id_usuario': user.id_usuario, 'usuario': user.usuario})
+    else:
+        return jsonify({'success': False, 'error': 'Usuario o contraseña incorrectos'}), 401
+
+@bp.route('/panel-admin')
+def panel_admin():
+    return render_template('administrador/panel-admin.html')
+
+@bp.route('/api/estadisticas/total-quejas')
+def api_total_quejas():
+    total = quejas_total_controller.total_quejas()
+    return jsonify({'total_quejas': total})
+
+@bp.route('/api/estadisticas/total-comercios')
+def api_total_comercios():
+    total = quejas_total_controller.total_comercios_reportados()
+    return jsonify({'total_comercios_reportados': total})
+
+@bp.route('/api/quejas/detalladas')
+def api_quejas_detalladas():
+    data = revision_quejas_controller.obtener_quejas_detalladas()
+    return jsonify(data)
+
+@bp.route('/api/comercios/lista')
+def api_lista_comercios():
+    data = lista_comercios_controller.obtener_lista_comercios()
+    return jsonify(data)
+
