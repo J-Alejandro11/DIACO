@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from src.controllers.departamento_controller import DepartamentoController
+from src.controllers.queja_controller import DepartamentoController
 from src.database.conexionbd import db
 import os
 
